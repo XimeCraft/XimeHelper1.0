@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SnapNRake</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="menu-icon">☰</div>
+            <span>SnapNRake</span>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Places to go, eat and have fun...">
+            <button class="search-button">Search</button>
+        </div>
+        <div class="auth-buttons">
+            <button class="sign-in">Sign in</button>
+            <button class="get-started">Get started</button>
+        </div>
+    </header>
+
+    <div class="hero-section">
+        <h1>where to GO?</h1>
+        <div class="main-search">
+            <input type="text" placeholder="Top restaurants near me">
+            <button class="search-button">Search</button>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-section categories">
+            <div class="filter-header">Categories</div>
+            <div class="filter-content">
+                <span class="tag highlight">All</span>
+                <span class="tag">category</span>
+                <span class="tag">category</span>
+                <span class="tag">category</span>
+                <span class="tag">category</span>
+            </div>
+        </div>
+        <div class="filter-section location">
+            <div class="filter-header">Location</div>
+            <div class="filter-content">
+                <span class="tag highlight">All</span>
+                <span class="tag">category</span>
+                <span class="tag">category</span>
+                <span class="tag">category</span>
+                <span class="tag">category</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="restaurant-grid" id="restaurant-container">
+        <!-- 餐厅卡片会通过 JavaScript 动态添加 -->
+    </div>
+
+    <template id="restaurant-card-template">
+        <div class="restaurant-card">
+            <div class="card-image">
+                <span class="new-tag">NEW!</span>
+                <img src="" alt="Restaurant Image">
+            </div>
+            <div class="card-info">
+                <div class="rating-info">
+                    <span class="best-rate">Best rate</span>
+                    <span class="popular">Popular</span>
+                </div>
+                <h3 class="restaurant-name">Xiao Cafe</h3>
+                <div class="restaurant-details">
+                    <span class="price">$20-30</span>
+                    <span class="time">20 minutes</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        let page = 1;
+        let loading = false;
+
+        function createRestaurantCard(restaurant) {
+            const template = document.getElementById('restaurant-card-template');
+            const card = template.content.cloneNode(true);
+            // 设置卡片数据
+            card.querySelector('img').src = restaurant.image;
+            card.querySelector('.restaurant-name').textContent = restaurant.name;
+            card.querySelector('.price').textContent = restaurant.price;
+            card.querySelector('.time').textContent = restaurant.time;
+            return card;
+        }
+
+        async function loadMoreRestaurants() {
+            if (loading) return;
+            loading = true;
+
+            try {
+                const response = await fetch(`/api/restaurants?page=${page}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('restaurant-container');
+                data.restaurants.forEach(restaurant => {
+                    container.appendChild(createRestaurantCard(restaurant));
+                });
+                
+                page++;
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+            } finally {
+                loading = false;
+            }
+        }
+
+        // 实现无限滚动
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 500) {
+                loadMoreRestaurants();
+            }
+        });
+
+        // 初始加载
+        loadMoreRestaurants();
+    </script>
+</body>
+</html>
