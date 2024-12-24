@@ -42,6 +42,20 @@ class ChatUI {
 
         // 处理表单提交
         this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
+
+        // 处理键盘事件
+        this.chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (e.shiftKey) {
+                    // Shift + Enter: 插入换行
+                    return;
+                } else {
+                    // 仅 Enter: 发送消息
+                    e.preventDefault();
+                    this.chatForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
     }
 
     adjustInputHeight() {
@@ -75,13 +89,13 @@ class ChatUI {
         const messageText = message.querySelector('.message-text');
 
         messageDiv.classList.add(`message-${type}`);
-        messageText.textContent = text;
+        messageText.innerHTML = text;
         this.messagesContainer.appendChild(message);
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 }
 
-// 初始化聊天界面
+// Initialize chat UI when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     new ChatUI();
 }); 

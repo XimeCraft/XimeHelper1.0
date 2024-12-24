@@ -1,5 +1,5 @@
 import os
-from app.services.openai_client import OpenAIClient
+from .openai_client import OpenAIClient
 
 class ChatService:
     def __init__(self):
@@ -19,7 +19,7 @@ class ChatService:
         try:
             response = self.client.create_chat_completion(prompt)
             return response
+        
         except Exception as e:
-
             print(f"Error in ChatService: {str(e)}")
             return "Sorry, I encountered an error. Please try again."

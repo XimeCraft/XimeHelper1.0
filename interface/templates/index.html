@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XimeHelper - AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <button class="new-chat">
+                    New Chat
+                </button>
+            </div>
+            <div class="history">
+                <!-- Chat history will be added here -->
+            </div>
+            <div class="sidebar-footer">
+                <button class="user-button">
+                    <span>Settings</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 主聊天区域 -->
+        <div class="main-content">
+            <div id="chat-messages" class="chat-messages">
+                <!-- Messages will be added here -->
+            </div>
+            <div class="input-area">
+                <form id="chat-form" class="chat-input-form">
+                    <div class="input-container">
+                        <textarea
+                            id="chat-input"
+                            class="chat-input"
+                            placeholder="Type your message here..."
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" class="send-button">
+                            ➤
+                        </button>
+                    </div>
+                    <div class="input-footer">
+                        XimeHelper - Your AI Assistant
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message template -->
+    <template id="message-template">
+        <div class="message">
+            <div class="message-text"></div>
+        </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

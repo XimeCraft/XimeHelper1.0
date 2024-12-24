@@ -1,3 +1,7 @@
+# Configuration
+config/
+.env
+
 # Python
 __pycache__/
 *.py[cod]
@@ -24,7 +28,6 @@ wheels/
 # Virtual Environment
 venv/
 ENV/
-.env
 
 # IDE
 .idea/
@@ -51,4 +54,4 @@ data/
 *.sqlite3
 logs/
 test_files/
-user_files/ 
+user_files/
