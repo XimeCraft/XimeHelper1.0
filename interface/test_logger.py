@@ -17,12 +17,14 @@ class TestLogger:
             'local_state': current_app.config.get('TEST_LOCAL_STATE_LOGGING', True)
         }
         
-        self.log_file = current_app.config.get('TEST_LOG_FILE', 'logs/test_log.jsonl')
+        # Use LOG_DIR from environment or config
+        log_dir = os.getenv('LOG_DIR', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs'))
+        self.log_file = os.path.join(log_dir, 'test_log.jsonl')
         self.log_format = current_app.config.get('TEST_LOG_FORMAT', 'jsonl')
         self.execution_start = None
         
         # Create logs directory if it doesn't exist
-        os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
+        os.makedirs(log_dir, exist_ok=True)
     
     def start_execution(self, title=None):
         """Start a new test execution"""

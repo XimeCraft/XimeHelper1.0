@@ -1,0 +1,81 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5001:5001"
+    volumes:
+      # Platform configs
+      - ./shared/config:/app/shared/config
+      - ./shared/logs:/app/shared/logs
+      
+      # AutoFileManagement
+      - ./AutoFileManagement/config:/app/AutoFileManagement/config
+      - ./AutoFileManagement/data:/app/AutoFileManagement/data
+      - ./AutoFileManagement/logs:/app/AutoFileManagement/logs
+      
+    environment:
+      - ELASTICSEARCH_ENABLED=true
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_SCHEME=http
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - LOG_DIR=/app/shared/logs
+      - FILE_BASE_DIR=/app/AutoFileManagement/data/test_files
+    env_file:
+      - .env
+    user: "1000:1000"
+    networks:
+      - xime-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./shared/config/elasticsearch:/usr/share/elasticsearch/config
+      - ./shared/data/elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - xime-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    platform: linux/arm64
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./shared/config/kibana:/usr/share/kibana/config
+    networks:
+      - xime-network
+    depends_on:
+      - elasticsearch
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./shared/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./shared/data/prometheus:/prometheus
+    networks:
+      - xime-network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    volumes:
+      - ./shared/logs:/usr/share/filebeat/logs
+      - ./shared/config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - xime-network
+
+networks:
+  xime-network:
+    driver: bridge

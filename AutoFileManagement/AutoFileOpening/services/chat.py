@@ -8,7 +8,7 @@ class ChatService:
     def get_response(self, prompt):
         """
         Get response from ChatGPT
-        
+        dkk
         Args:
             prompt (str): Complete prompt text
             

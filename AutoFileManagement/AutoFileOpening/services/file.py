@@ -112,6 +112,7 @@ class FileService:
         try:
             file_path = os.path.expanduser(os.path.expandvars(file_path))
             file_path = os.path.abspath(file_path)
+            current_app.logger.info(f"Opening file: {file_path}")
             
             # Verify file is in white list directory
             if not any(os.path.commonpath([file_path, os.path.abspath(white_dir)]) == os.path.abspath(white_dir) 
