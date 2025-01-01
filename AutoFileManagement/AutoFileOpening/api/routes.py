@@ -15,5 +15,3 @@ def chat():
     response = command_service.process_command(message)
     
     return jsonify(response)
-
- 
