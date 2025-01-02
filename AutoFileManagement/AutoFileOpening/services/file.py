@@ -5,9 +5,10 @@ import fnmatch
 
 class FileService:
     def __init__(self):
-        self.white_dirs = current_app.config['WHITE_DIRECTORIES']
-        self.white_types = current_app.config.get('WHITE_FILE_TYPES', {})
-        self.max_file_size = current_app.config.get('MAX_FILE_SIZE', float('inf'))
+        
+        self.white_dirs = current_app.config.get('AUTO_FILE_OPENING_WHITE_DIRS', [])
+        self.file_types = current_app.config.get('AUTO_FILE_OPENING_FILE_TYPES', {})
+        self.max_file_size = current_app.config.get('AUTO_FILE_OPENING_MAX_PROCESSABLE_SIZE', float('inf'))
         
         # Validate and expand all directory paths
         self.white_dirs = [os.path.expanduser(os.path.expandvars(d)) for d in self.white_dirs]
@@ -99,7 +100,7 @@ class FileService:
     
     def _is_white_type(self, extension, file_type):
         """Check if file extension is in white list for given type"""
-        white_extensions = self.white_types.get(file_type, [])
+        white_extensions = self.file_types.get(file_type, [])
         return extension.lower() in white_extensions
     
     def open_file(self, file_path):

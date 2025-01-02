@@ -56,11 +56,12 @@ class PromptService:
     
     def get_file_types(self):
         """Get file type categories from config"""
-        config = current_app.config.get('WHITE_FILE_TYPES', {})
+        config = current_app.config.get('FileTypes', {})
         return {
-            'document_types': ', '.join(config.get('document', [])),
-            'image_types': ', '.join(config.get('image', [])),
-            'data_types': ', '.join(config.get('data', []))
+            'document_types': ', '.join(config.get('DOCUMENT', [])),
+            'image_types': ', '.join(config.get('IMAGE', [])),
+            'data_types': ', '.join(config.get('DATA', [])),
+            'archieve': ', '.join(config.get('ARCHIVES', []))
         }
     
     def combine_prompt(self, user_query, files):

@@ -7,14 +7,16 @@ from datetime import datetime
 from interface.test_logger import TestLogger
 
 class CommandService:
+    """Service for processing user commands"""
+    
     def __init__(self):
         self.chat_service = ChatService()
         self.prompt_service = PromptService()
         self.file_service = FileService()
         self.test_logger = TestLogger()
         # Maximum number of files to include in prompt
-        self.max_files_in_prompt = current_app.config.get('MAX_FILES_IN_PROMPT', 5)
-    
+        self.max_files_in_prompt = current_app.config.get('AUTO_FILE_OPENING_MAX_FILES_IN_PROMPT', 5)
+
     def _format_file_info(self, file_path):
         """Format file information for display"""
         try:
@@ -87,7 +89,7 @@ class CommandService:
             
             # Get response from ChatGPT
             file_name = self.chat_service.get_response(prompt)
-            
+            print(file_name)
             # Log LLM response
             self.test_logger.log_llm_response(file_name)
 

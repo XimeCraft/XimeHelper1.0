@@ -10,11 +10,11 @@ class OpenAIClient:
         load_dotenv(override=True)
         
         self.api_key = os.getenv('OPENAI_API_KEY')
-        self.enabled = current_app.config.get('OPENAI_ENABLED', False)
-        self.model = current_app.config.get('OPENAI_MODEL', 'gpt-3.5-turbo')
-        self.temperature = current_app.config.get('OPENAI_TEMPERATURE', 0.7)
-        self.max_tokens = current_app.config.get('MAX_PROMPT_TOKENS', 2000)
-        
+        self.enabled = current_app.config.get('AUTO_FILE_OPENAI_ENABLED', False)
+        self.model = current_app.config.get('AUTO_FILE_OPENAI_MODEL', 'gpt-3.5-turbo')
+        self.temperature = current_app.config.get('AUTO_FILE_OPENAI_TEMPERATURE', 0.7)
+        self.max_tokens = current_app.config.get('AUTO_FILE_MAX_PROMPT_TOKENS', 2000)
+
         # Log API key status (first few characters only)
         if self.api_key:
             current_app.logger.info(f'Loaded API key starting with: {self.api_key[:5]}...')
