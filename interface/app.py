@@ -45,33 +45,31 @@ def create_app():
         raise  # Re-raise the exception to see the full traceback
     
     @app.route('/')
-    def index():
-        app.logger.warning('Test warning log message')
-        app.logger.error('Test error log message')
+    async def index():
         return render_template('index.html')
-    
+
     @app.before_request
-    def before_request():
-        g.start_time = time.time()
-        request.start_time = time.time()
+    async def before_request():
+        g.request_start_time = time.time()
 
     @app.after_request
-    def after_request(response):
+    async def after_request(response):
+        if hasattr(g, 'request_start_time'):
+            elapsed = time.time() - g.request_start_time
+            response.headers['X-Request-Time'] = str(elapsed)
         return response
 
     @app.errorhandler(500)
-    def internal_error(error):
-        app.logger.error(f'Server Error: {error}')
-        return 'Internal Server Error', 500
+    async def internal_error(error):
+        app.logger.error('Server Error: %s', error)
+        return render_template('errors/500.html'), 500
 
     @app.errorhandler(404)
-    def not_found_error(error):
-        app.logger.warning(f'Page not found: {error}')
-        return 'Not Found', 404
-    
+    async def not_found_error(error):
+        app.logger.error('Not Found Error: %s', error)
+        return render_template('errors/404.html'), 404
+
     return app
 
-app = create_app()
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001) 
+# Create the ASGI application
+asgi_app = create_app() 

@@ -38,6 +38,13 @@ class AutoFileManagementConfig:
         self.openai_temperature = self.config.getfloat('OpenAI', 'TEMPERATURE')
         self.openai_max_prompt_tokens = self.config.getint('OpenAI', 'MAX_PROMPT_TOKENS')
 
+        # Load Ollama configuration
+        self.ollama_enabled = self.config.getboolean('Ollama', 'ENABLED')
+        self.ollama_model = self.config.get('Ollama', 'MODEL')
+        self.ollama_temperature = self.config.getfloat('Ollama', 'TEMPERATURE')
+        self.ollama_max_prompt_tokens = self.config.getint('Ollama', 'MAX_PROMPT_TOKENS')
+        self.ollama_base_url = self.config.get('Ollama', 'BASE_URL', fallback='http://localhost:11434')
+
     def get_module_config_path(self, module_name):
         """Get configuration path for a specific module"""
         return os.path.join(
@@ -77,6 +84,13 @@ class AutoFileManagementConfig:
         app.config['AUTO_FILE_OPENAI_MODEL'] = self.openai_model
         app.config['AUTO_FILE_OPENAI_TEMPERATURE'] = self.openai_temperature
         app.config['AUTO_FILE_MAX_PROMPT_TOKENS'] = self.openai_max_prompt_tokens
+        
+        # Ollama configuration
+        app.config['AUTO_FILE_OLLAMA_ENABLED'] = self.ollama_enabled
+        app.config['AUTO_FILE_OLLAMA_MODEL'] = self.ollama_model
+        app.config['AUTO_FILE_OLLAMA_TEMPERATURE'] = self.ollama_temperature
+        app.config['AUTO_FILE_OLLAMA_MAX_PROMPT_TOKENS'] = self.ollama_max_prompt_tokens
+        app.config['AUTO_FILE_OLLAMA_URL'] = self.ollama_base_url
         
         # Ensure required directories exist
         for dir_path in [self.log_dir, self.data_dir]:

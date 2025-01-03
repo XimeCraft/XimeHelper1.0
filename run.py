@@ -1,11 +1,19 @@
-from interface.app import app
+from interface.app import asgi_app as app
 import logging
+import asyncio
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
 
 if __name__ == '__main__':
-
-    app.logger.setLevel(logging.DEBUG)
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    app.logger.addHandler(console_handler)
+    # Setup logging
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger('hypercorn')
+    logger.setLevel(logging.DEBUG)
     
-    app.run(debug=True, host='0.0.0.0', port=5001) 
+    # Configure Hypercorn
+    config = Config()
+    config.bind = ["0.0.0.0:5001"]
+    config.use_reloader = True
+    
+    # Run the server
+    asyncio.run(serve(app, config)) 
