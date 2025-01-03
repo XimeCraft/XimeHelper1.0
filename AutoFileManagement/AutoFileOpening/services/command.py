@@ -121,7 +121,7 @@ class CommandService:
                     file_info = self._format_file_info(file_path)
                     
                     if operation == 'close':
-                        self.file_service.close_file(file_path)
+                        self.file_service.close_specific_file(file_path)
                         if file_info:
                             response = f"Closing file:<br>" + \
                                      f"Name: {file_info['name']}<br>" + \

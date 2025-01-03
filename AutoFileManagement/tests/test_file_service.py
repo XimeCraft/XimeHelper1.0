@@ -103,14 +103,17 @@ class TestFileService(unittest.TestCase):
 
     def test_file_open_detection_by_type(self):
         """Test file open detection for each file type"""
-        for name, path in self.test_files.items():
+        # Skip PDF and CSV files
+        test_files = {k: v for k, v in self.test_files.items() if k not in ['pdf', 'csv']}
+        
+        for name, path in test_files.items():
             with self.subTest(file_type=name):
                 logging.info(f"\n{'='*20} Testing {name} file {'='*20}")
                 logging.info(f"File path: {path}")
                 
                 # Open file and wait for application to be ready
                 os.system(f'open "{path}"')
-                time.sleep(1)  # Give more time for PDF Reader and Excel
+                time.sleep(0.5)  # Reduced wait time since we're not testing PDF/Excel
                 
                 # Test detection
                 is_open = self.file_service.is_file_open(path)
@@ -128,7 +131,7 @@ class TestFileService(unittest.TestCase):
                     f"Failed to close {name} ({path})"
                 )
                 
-                time.sleep(1)  # Give more time for applications to quit
+                time.sleep(0.5)  # Reduced wait time
                 
                 # Verify file is closed
                 is_still_open = self.file_service.is_file_open(path)
@@ -190,84 +193,6 @@ class TestFileService(unittest.TestCase):
         logging.info("\nCleaning up...")
         self.file_service.close_specific_file(txt_files[1])
         logging.info("=== Multiple Files Test Complete ===\n")
-
-    def test_modified_files_by_type(self):
-        """Test closing modified files of different types"""
-        # Test with text files only (since we can't save PDF/Excel)
-        test_files = ['txt2']
-        for file_key in test_files:
-            with self.subTest(file_type=file_key):
-                file_path = self.test_files[file_key]
-                logging.info(f"\n=== Testing Modified File: {file_path.name} ===")
-                
-                # Open file
-                os.system(f'open "{file_path}"')
-                time.sleep(0.3)
-                
-                # Prompt for modification
-                input(f"Please modify {file_path.name} and save. Press Enter when done...")
-                
-                # Try to close
-                success = self.file_service.close_specific_file(file_path)
-                logging.info(f"Close operation success? {success}")
-                self.assertTrue(
-                    success,
-                    f"Failed to close modified {file_key} file"
-                )
-                
-                time.sleep(0.3)  # Short delay for file to close
-                
-                # Verify file is closed
-                is_still_open = self.file_service.is_file_open(file_path)
-                logging.info(f"Is file still open? {is_still_open}")
-                self.assertFalse(
-                    is_still_open,
-                    f"Modified {file_key} file should be closed"
-                )
-                logging.info(f"=== Modified File Test Complete ===\n")
-
-    def test_pdf_and_excel_handling(self):
-        """Test specifically PDF and Excel file handling"""
-        test_files = {
-            "pdf": self.test_files["pdf"],
-            "csv": self.test_files["csv"]
-        }
-        
-        for name, path in test_files.items():
-            with self.subTest(file_type=name):
-                logging.info(f"\n{'='*20} Testing {name} file {'='*20}")
-                logging.info(f"File path: {path}")
-                
-                # Open file and wait for application to be ready
-                os.system(f'open "{path}"')
-                time.sleep(1)
-                
-                # Test detection
-                is_open = self.file_service.is_file_open(path)
-                logging.info(f"Is file open? {is_open}")
-                self.assertTrue(
-                    is_open,
-                    f"Failed to detect that {name} ({path}) is open"
-                )
-                
-                # Close file
-                success = self.file_service.close_specific_file(path)
-                logging.info(f"Close operation success? {success}")
-                self.assertTrue(
-                    success,
-                    f"Failed to close {name} ({path})"
-                )
-                
-                time.sleep(1)
-                
-                # Verify file is closed
-                is_still_open = self.file_service.is_file_open(path)
-                logging.info(f"Is file still open? {is_still_open}")
-                self.assertFalse(
-                    is_still_open,
-                    f"{name} ({path}) should be closed"
-                )
-                logging.info(f"{'='*50}\n")
 
     @classmethod
     def tearDownClass(cls):

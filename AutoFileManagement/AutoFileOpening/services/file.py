@@ -104,6 +104,10 @@ class FileService:
         
         # Get the process that has the file open
         result = AppleScriptService.find_window_process(file_name)
+        print("============result==========")
+        print(result)   
+        print("===========result===========")
+
         
         if not result or result == "{}":
             current_app.logger.warning(f"No process found with open file: {file_name}")
