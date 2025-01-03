@@ -18,7 +18,7 @@ class AutoFileOpeningConfig:
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
             
         self.config.read(config_path)
-        
+ 
         # Load white directories
         self.white_dirs = []
         for key, value in self.config.items('WhiteDirectories'):
@@ -28,11 +28,19 @@ class AutoFileOpeningConfig:
         
         # Load file types configuration
         self.file_types = {}
-        for key, value in self.config.items('FileTypes'):
-            # Split by comma and clean up each extension
-            extensions = [ext.strip() for ext in value.split(',')]
-            self.file_types[key.upper()] = extensions
-        
+        if self.config.has_section('FileTypes'):
+            for key, value in self.config.items('FileTypes'):
+                # Split by comma and clean up each extension
+                extensions = [ext.strip().lower() for ext in value.split(',')]
+                self.file_types[key.upper()] = extensions
+
+        # Load application mapping
+        self.app_mapping = {}
+        if self.config.has_section('AppMapping'):
+            for ext, app_name in self.config.items('AppMapping'):
+                if not ext.startswith('#'):  # Skip comments
+                    self.app_mapping[ext.strip().lstrip('.')] = app_name.strip()
+
         # Load limits configuration
         self.max_processable_file_size = self.config.getint(
             'Limits', 
@@ -62,6 +70,9 @@ class AutoFileOpeningConfig:
         for extensions in self.file_types.values():
             all_extensions.update(extensions)
         app.config['AUTO_FILE_OPENING_ALLOWED_EXTENSIONS'] = all_extensions
+        
+        # Set application mapping
+        app.config['AUTO_FILE_OPENING_APP_MAPPING'] = self.app_mapping
         
         # Limits configuration
         app.config['AUTO_FILE_OPENING_MAX_PROCESSABLE_SIZE'] = self.max_processable_file_size

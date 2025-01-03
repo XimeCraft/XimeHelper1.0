@@ -5,7 +5,7 @@ from flask import current_app
 class PromptTemplate:
     """Prompt templates for file assistant"""
     
-    FILE_ASSISTANT = """You are a file assistant helping users find and open files.
+    FILE_MATCHING = """You are a file assistant helping users find, open, and close files.
 
 Available files in {base_dir}:
 {files}
@@ -22,19 +22,21 @@ Instructions:
    - "document" -> match any document type
    - "image" -> match any image type
    - "data" -> match any data file type
-4. Return ONLY the file name (not full path)
+4. For file operations, return in the following format:
+   - When user wants to "open" or "打开": operation: open, filename: <the filename>
+   - When user wants to "close" or "关闭" or "关上": operation: close, filename: <the filename>
+   - For both operations, you should use the same file matching logic to find the correct file
 5. If no files match, return "No matching files found."
 
 User query: {query}
 
-File name:"""
-
+Response:"""
 class PromptService:
     def __init__(self):
         self.templates = {
-            'file_assistant': PromptTemplate.FILE_ASSISTANT
+            'file_matching': PromptTemplate.FILE_MATCHING
         }
-        self.current_template = 'file_assistant'
+        self.current_template = 'file_matching'
     
     def format_file_list(self, files):
         """Format file list in a concise way"""
@@ -56,18 +58,21 @@ class PromptService:
     
     def get_file_types(self):
         """Get file type categories from config"""
-        config = current_app.config.get('FileTypes', {})
+        file_types = current_app.config.get('AUTO_FILE_OPENING_FILE_TYPES', {})
         return {
-            'document_types': ', '.join(config.get('DOCUMENT', [])),
-            'image_types': ', '.join(config.get('IMAGE', [])),
-            'data_types': ', '.join(config.get('DATA', [])),
-            'archieve': ', '.join(config.get('ARCHIVES', []))
+            'document_types': ', '.join(file_types.get('DOCUMENT', [])),
+            'image_types': ', '.join(file_types.get('IMAGE', [])),
+            'data_types': ', '.join(file_types.get('DATA', [])),
+            'archieve': ', '.join(file_types.get('ARCHIVES', []))
         }
     
     def combine_prompt(self, user_query, files):
         """Combine user query and file list into a prompt"""
         base_dir, files_str = self.format_file_list(files)
         file_types = self.get_file_types()
+        print("==========file_types==========")
+        print(file_types)
+        print("==========file_types==========")
         
         return self.templates[self.current_template].format(
             query=user_query,

@@ -80,6 +80,10 @@ class CommandService:
             
             # Combine everything into the prompt
             prompt = self.prompt_service.combine_prompt(user_message, files)
+
+            print("==========prompt==========")
+            print(prompt)
+            print("==========prompt==========")
             
             # Log prompt information
             self.test_logger.log_prompt(prompt, {
@@ -88,39 +92,56 @@ class CommandService:
             })
             
             # Get response from ChatGPT
-            file_name = self.chat_service.get_response(prompt)
-            print(file_name)
+            llm_response = self.chat_service.get_response(prompt)
+            print("==========llm_response==========")
+            print(llm_response)
+            print("==========llm_response==========")
+            
             # Log LLM response
-            self.test_logger.log_llm_response(file_name)
+            self.test_logger.log_llm_response(llm_response)
 
             response = None
             try:
-                # Clean up the response to get just the file name
-                file_name = file_name.strip().strip('"').strip("'")
-                if file_name != "No matching files found.":
+                # Clean up the response
+                llm_response = llm_response.strip().strip('"').strip("'")
+                if llm_response != "No matching files found.":
+                    # Parse operation and filename
+                    parts = llm_response.split(', filename: ')
+                    operation = parts[0].split('operation: ')[1].strip()
+                    file_name = parts[1].strip()
+                    
                     # Convert file name to full path
                     file_path = os.path.join(base_dir, file_name)
                     
                     # Verify the file exists
                     if not os.path.exists(file_path):
                         raise FileNotFoundError(f"File not found: {file_name}")
-                        
-                    self.file_service.open_file(file_path)
+                    
                     # Get detailed file information
                     file_info = self._format_file_info(file_path)
-                    if file_info:
-                        # Log file information
-                        self.test_logger.log_file_info(file_info)
-                        response = f"Opening file:<br>" + \
-                                 f"Name: {file_info['name']}<br>" + \
-                                 f"Type: {file_info['type']}<br>" + \
-                                 f"Size: {file_info['size']}<br>" + \
-                                 f"Modified: {file_info['modified']}<br>" + \
-                                 f"Path: {file_info['path']}"
-                    else:
-                        response = f"Opening file: {file_path}"
+                    
+                    if operation == 'close':
+                        self.file_service.close_file(file_path)
+                        if file_info:
+                            response = f"Closing file:<br>" + \
+                                     f"Name: {file_info['name']}<br>" + \
+                                     f"Type: {file_info['type']}<br>" + \
+                                     f"Path: {file_info['path']}"
+                        else:
+                            response = f"Closing file: {file_path}"
+                    elif operation == 'open':
+                        self.file_service.open_file(file_path)
+                        if file_info:
+                            response = f"Opening file:<br>" + \
+                                     f"Name: {file_info['name']}<br>" + \
+                                     f"Type: {file_info['type']}<br>" + \
+                                     f"Size: {file_info['size']}<br>" + \
+                                     f"Modified: {file_info['modified']}<br>" + \
+                                     f"Path: {file_info['path']}"
+                        else:
+                            response = f"Opening file: {file_path}"
                 else:
-                    response = file_name
+                    response = llm_response
             except Exception as e:
                 current_app.logger.warning(f"Failed to open file: {str(e)}")
                 response = f"Failed to open file: {str(e)}"
