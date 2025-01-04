@@ -6,9 +6,9 @@ from models.prompts.file_assistant import FileAssistantPrompt
 class PromptService:
     def __init__(self):
         self.templates = {
+            'operation': FileAssistantPrompt.OPERATION_DETECTION,
             'file_matching': FileAssistantPrompt.FILE_MATCHING
         }
-        self.current_template = 'file_matching'
     
     def format_file_list(self, files):
         """Format file list in a concise way"""
@@ -38,15 +38,19 @@ class PromptService:
             'archieve': ', '.join(file_types.get('ARCHIVES', []))
         }
         
-    def combine_prompt(self, user_query, files):
-        """Combine user query and file list into a prompt"""
+    def get_operation_prompt(self, user_query):
+        """Get operation detection prompt"""
+        return self.templates['operation'].format(query=user_query)
+        
+    def get_file_matching_prompt(self, user_query, files):
+        """Get file matching prompt"""
         base_dir, files_str = self.format_file_list(files)
         file_types = self.get_file_types()
         print("==========file_types==========")
         print(file_types)
         print("==========file_types==========")
         
-        return self.templates[self.current_template].format(
+        return self.templates['file_matching'].format(
             query=user_query,
             base_dir=base_dir,
             files=files_str,

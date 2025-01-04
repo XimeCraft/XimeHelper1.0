@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, g
+from flask import Flask, render_template, g
 from dotenv import load_dotenv
 from core.logger import LogManager
 from core.config import Config
@@ -66,7 +66,7 @@ def create_app():
 
     @app.errorhandler(404)
     async def not_found_error(error):
-        app.logger.error('Not Found Error: %s', error)
+        app.logger.error('Not Found Page 404 Error: %s', error)
         return render_template('errors/404.html'), 404
 
     return app

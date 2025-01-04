@@ -145,6 +145,7 @@ class FileService:
         try:
             if directory:
                 directory = os.path.expanduser(os.path.expandvars(directory))
+                print(f"directory: {directory}")
                 search_dirs = [directory] if directory in self.white_dirs else []
             else:
                 search_dirs = self.white_dirs

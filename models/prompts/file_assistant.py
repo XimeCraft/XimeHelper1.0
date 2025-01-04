@@ -5,9 +5,29 @@ File assistant prompt templates
 class FileAssistantPrompt:
     """Prompt templates for file assistant"""
     
-    FILE_MATCHING = """You are a file assistant helping identify the proper operation and filename from user's query.
+    OPERATION_DETECTION = """You are a file operation assistant. Your task is to identify if the user wants to open or close a file.
 
-Available files in {base_dir}:
+Instructions:
+1. Identify if the user wants to:
+   - open/打开 a file -> return "open"
+   - close/关闭/关上 a file -> return "close"
+2. Only return one of these exact words: "open" or "close"
+3. If the operation is unclear, return "unknown"
+
+Examples:
+User query: "open the test1 document"
+Response: "open"
+
+User query: "关闭 that image"
+Response: "close"
+
+User query: {query}
+
+Response:"""
+
+    FILE_MATCHING = """You are a file matching assistant. Your task is to identify which file in Available Files the user is referring to.
+
+Available Files in {base_dir}:
 {files}
 
 File type categories:
@@ -22,18 +42,15 @@ Instructions:
    - "document" -> match any Documents type
    - "image" -> match any Images type
    - "data" -> match any Data Files type
-4. For file operations, return in the following format:
-   - When user wants to "open" or "打开": operation: open, filename: <the filename>
-   - When user wants to "close" or "关闭" or "关上": operation: close, filename: <the filename>
-   - For both operations, you should use the same file matching logic to find the correct file
+4. Return ONLY the exact filename that best matches the user's query
 5. If no files match, return "No matching files found."
 
 Examples:
-User query: "open the document"
-Response: "operation: open, filename: document.docx"
+User query: "open the test1 document"
+Response: "test1.txt"
 
-User query: "close the image"
-Response: "operation: close, filename: image.jpg"
+User query: "close that image"
+Response: "AutoFileOpeningFrame.png"
 
 User query: {query}
 

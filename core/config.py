@@ -48,17 +48,16 @@ class Config:
             # Load App section
             if config.has_section('App'):
                 app.config['HOST'] = config.get('App', 'HOST', fallback='0.0.0.0')
-                app.config['PORT'] = config.getint('App', 'PORT', fallback=5000)
+                app.config['PORT'] = config.getint('App', 'PORT')
                 app.config['DEBUG'] = config.getboolean('App', 'DEBUG', fallback=False)
                 app.config['LOG_LEVEL'] = config.get('App', 'LOG_LEVEL', fallback='INFO')
             
             # Load Paths section
             if config.has_section('Paths'):
                 app.config['LOG_DIR'] = config.get('Paths', 'LOG_DIR', fallback='shared/logs')
-                app.config['DATA_DIR'] = config.get('Paths', 'DATA_DIR', fallback='shared/data')
                 
                 # Ensure directories exist
-                for dir_path in [app.config['LOG_DIR'], app.config['DATA_DIR']]:
+                for dir_path in [app.config['LOG_DIR']]:
                     os.makedirs(dir_path, exist_ok=True)
         
         # Load logging configuration (separate file for logging specifics)
@@ -67,9 +66,7 @@ class Config:
             config = configparser.ConfigParser()
             config.read(logging_config)
             if config.has_section('Logging'):
-                app.config['MAX_LOG_SIZE'] = config.getint('Logging', 'max_size', fallback=10 * 1024 * 1024)
-                app.config['LOG_BACKUP_COUNT'] = config.getint('Logging', 'backup_count', fallback=10)
-        else:
-            app.logger.warning(f'Logging config not found at {logging_config}, using defaults')
-            app.config['MAX_LOG_SIZE'] = 10 * 1024 * 1024  # 10MB
-            app.config['LOG_BACKUP_COUNT'] = 10
+                app.config['LOG_FILE_LEVEL'] = config.get('Logging', 'FILE_LEVEL')
+                app.config['LOG_CONSOLE_LEVEL'] = config.get('Logging', 'CONSOLE_LEVEL')
+                app.config['MAX_LOG_SIZE'] = config.getint('Logging', 'MAX_SIZE')
+                app.config['LOG_BACKUP_COUNT'] = config.getint('Logging', 'BACKUP_COUNT')
