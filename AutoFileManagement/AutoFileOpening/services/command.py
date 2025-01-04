@@ -81,10 +81,6 @@ class CommandService:
             # Combine everything into the prompt
             prompt = self.prompt_service.combine_prompt(user_message, files)
 
-            print("==========prompt==========")
-            print(prompt)
-            print("==========prompt==========")
-            
             # Log prompt information
             self.test_logger.log_prompt(prompt, {
                 'user_message': user_message,

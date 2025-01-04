@@ -6,9 +6,9 @@ from hypercorn.asyncio import serve
 
 if __name__ == '__main__':
     # Setup logging
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.ERROR)
     logger = logging.getLogger('hypercorn')
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.ERROR)
     
     # Configure Hypercorn
     config = Config()

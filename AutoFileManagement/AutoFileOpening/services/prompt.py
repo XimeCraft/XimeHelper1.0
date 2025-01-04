@@ -1,40 +1,12 @@
 from typing import List, Dict, Optional
 import os
 from flask import current_app
+from models.prompts.file_assistant import FileAssistantPrompt
 
-class PromptTemplate:
-    """Prompt templates for file assistant"""
-    
-    FILE_MATCHING = """You are a file assistant helping users find, open, and close files.
-
-Available files in {base_dir}:
-{files}
-
-File type categories:
-- Documents: {document_types}
-- Images: {image_types}
-- Data files: {data_types}
-
-Instructions:
-1. Match files based on the user's description
-2. Support natural language queries in any language
-3. When user mentions:
-   - "document" -> match any document type
-   - "image" -> match any image type
-   - "data" -> match any data file type
-4. For file operations, return in the following format:
-   - When user wants to "open" or "打开": operation: open, filename: <the filename>
-   - When user wants to "close" or "关闭" or "关上": operation: close, filename: <the filename>
-   - For both operations, you should use the same file matching logic to find the correct file
-5. If no files match, return "No matching files found."
-
-User query: {query}
-
-Response:"""
 class PromptService:
     def __init__(self):
         self.templates = {
-            'file_matching': PromptTemplate.FILE_MATCHING
+            'file_matching': FileAssistantPrompt.FILE_MATCHING
         }
         self.current_template = 'file_matching'
     
@@ -65,7 +37,7 @@ class PromptService:
             'data_types': ', '.join(file_types.get('DATA', [])),
             'archieve': ', '.join(file_types.get('ARCHIVES', []))
         }
-    
+        
     def combine_prompt(self, user_query, files):
         """Combine user query and file list into a prompt"""
         base_dir, files_str = self.format_file_list(files)
