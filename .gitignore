@@ -44,3 +44,10 @@ ENV/
 # Logs
 logs/
 *.log
+
+# Project specific
+documents/
+AutoFileManagement/data/
+data/
+*.db
+*.sqlite3
