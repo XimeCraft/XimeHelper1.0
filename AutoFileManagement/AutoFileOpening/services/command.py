@@ -45,7 +45,14 @@ class CommandService:
     async def _detect_operation(self, user_message):
         """Detect the operation (open/close) from user message"""
         operation_prompt = self.prompt_service.get_operation_prompt(user_message)
+        print('========== operation_prompt==========')
+        print(operation_prompt)
+        print('========== operation_prompt==========')
+
         operation = await self.chat_service.get_response(operation_prompt)
+        print('========== operation==========')
+        print(operation)
+        print('========== operation==========')
         return operation.strip().lower()
 
     async def _match_file(self, user_message, files):

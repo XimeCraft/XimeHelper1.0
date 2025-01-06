@@ -46,9 +46,6 @@ class PromptService:
         """Get file matching prompt"""
         base_dir, files_str = self.format_file_list(files)
         file_types = self.get_file_types()
-        print("==========file_types==========")
-        print(file_types)
-        print("==========file_types==========")
         
         return self.templates['file_matching'].format(
             query=user_query,
