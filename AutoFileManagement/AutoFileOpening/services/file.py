@@ -15,12 +15,9 @@ class FileService:
         
         # Validate and expand all directory paths
         self.white_dirs = [os.path.expanduser(os.path.expandvars(d)) for d in self.white_dirs]
-        print("white_dirs 1", self.white_dirs)
-
         # Filter out non-existent directories
         self.white_dirs = [d for d in self.white_dirs if os.path.exists(d)]
-        print("white_dirs 2", self.white_dirs)
-
+        
         if not self.white_dirs:
             current_app.logger.warning("No valid directories found in whitelist")
 
@@ -32,9 +29,7 @@ class FileService:
     def _verify_file_path(self, file_path):
         """Verify file path exists and is in whitelist"""
         file_path = os.path.expanduser(os.path.expandvars(file_path))
-        print("file_path 1", file_path)
         file_path = os.path.abspath(file_path)
-        print("file_path 2", file_path)
         
         # Verify file is in white list directory
         if not any(os.path.commonpath([file_path, os.path.abspath(white_dir)]) == os.path.abspath(white_dir) 
@@ -50,7 +45,7 @@ class FileService:
         """Open file with default application if it's in white list directory"""
         try:
             file_path = self._verify_file_path(file_path)
-            current_app.logger.info(f"Starting to open file: {file_path}")
+            current_app.logger.info(f"Opening file: {file_path}")
             
             if not os.access(file_path, os.R_OK):
                 raise PermissionError(f"No permission to read file: {file_path}")
@@ -58,7 +53,7 @@ class FileService:
             import platform
             if platform.system() == 'Darwin':       # macOS
                 os.system(f'open "{file_path}"')
-                time.sleep(0.5)  # Wait for application to start
+                time.sleep(0.2)  # Reduced from 0.5 to 0.2
             elif platform.system() == 'Windows':    # Windows
                 os.system(f'start "" "{file_path}"')
             else:                                   # Linux
@@ -74,8 +69,6 @@ class FileService:
             result = subprocess.run(['lsof', str(file_path)], 
                                 capture_output=True, 
                                 text=True)
-            print("_get_process_info result", result)
-
             if result.stdout:
                 lines = result.stdout.strip().split('\n')[1:]  # Skip header
                 processes = [line.split()[0] for line in lines]
@@ -93,7 +86,7 @@ class FileService:
         
         # Use AppleScript to check if file is open
         result = AppleScriptService.get_open_processes(file_name)
-        print("get_open_processes result", result)
+        
         if result:
             current_app.logger.info(f"File {file_name} is open in: {result}")
             return True
@@ -111,21 +104,23 @@ class FileService:
         
         # Get the process that has the file open
         result = AppleScriptService.find_window_process(file_name)
-        print("find_window_process result", result)
+        print("============result==========")
+        print(result)   
+        print("===========result===========")
+
         
         if not result or result == "{}":
             current_app.logger.warning(f"No process found with open file: {file_name}")
             return False
         
         process_info = result.strip("{}").split(",")
-        print("process_window_info", process_info)
         process_name = process_info[0].strip()
         
         current_app.logger.info(f"Found file in process: {process_name}")
         
         # Save and close the specific window
         success = AppleScriptService.save_and_close_window(process_name, file_name)
-        print("save_and_close_window result", success)
+        
         if success:
             current_app.logger.info(f"Successfully closed {file_name}")
         else:
@@ -137,7 +132,7 @@ class FileService:
         Get list of files from white list directories
         
         Args:
-            directory (str, optional): Specific directory to search in and return filtered files directory from white list
+            directory (str, optional): Specific directory to search in
             file_type (str, optional): Type of files to search for
             
         Returns:

@@ -5,6 +5,7 @@ from flask import current_app
 import os
 from datetime import datetime
 from interface.test_logger import TestLogger
+import json
 
 class CommandService:
     """Service for processing user commands"""
@@ -41,53 +42,8 @@ class CommandService:
         except Exception as e:
             current_app.logger.warning(f"Error getting file info: {str(e)}")
             return None
-
-    async def _detect_operation(self, user_message):
-        """Detect the operation (open/close) from user message"""
-        operation_prompt = self.prompt_service.get_operation_prompt(user_message)
-        print('========== operation_prompt==========')
-        print(operation_prompt)
-        print('========== operation_prompt==========')
-
-        operation = await self.chat_service.get_response(operation_prompt)
-        print('========== operation==========')
-        print(operation)
-        print('========== operation==========')
-        return operation.strip().lower()
-
-    async def _match_file(self, user_message, files):
-        """Match the file from user message"""
-        file_prompt = self.prompt_service.get_file_matching_prompt(user_message, files)
-        filename = await self.chat_service.get_response(file_prompt)
-        return filename.strip().strip('"').strip("'")
-
-    def _handle_open_file(self, file_path):
-        """Handle opening a file"""
-        file_info = self._format_file_info(file_path)
-        self.file_service.open_file(file_path)
-        
-        if file_info:
-            return f"Opening file:<br>" + \
-                   f"Name: {file_info['name']}<br>" + \
-                   f"Type: {file_info['type']}<br>" + \
-                   f"Size: {file_info['size']}<br>" + \
-                   f"Modified: {file_info['modified']}<br>" + \
-                   f"Path: {file_info['path']}"
-        return f"Opening file: {file_path}"
-
-    def _handle_close_file(self, file_path):
-        """Handle closing a file"""
-        file_info = self._format_file_info(file_path)
-        self.file_service.close_file(file_path)
-        
-        if file_info:
-            return f"Closing file:<br>" + \
-                   f"Name: {file_info['name']}<br>" + \
-                   f"Type: {file_info['type']}<br>" + \
-                   f"Path: {file_info['path']}"
-        return f"Closing file: {file_path}"
     
-    async def process_command(self, user_message):
+    def process_command(self, user_message):
         """
         Process user command and execute corresponding actions
         """
@@ -123,50 +79,92 @@ class CommandService:
             # Get base directory from the first file's path
             base_dir = os.path.dirname(files[0]['path']) if 'path' in files[0] else self.file_service.white_dirs[0]
             
+            # Combine everything into the prompt
+            prompt = self.prompt_service.combine_prompt(user_message, files)
+
+            print("==========prompt==========")
+            print(prompt)
+            print("==========prompt==========")
+            
+            # Log prompt information
+            self.test_logger.log_prompt(prompt, {
+                'user_message': user_message,
+                'files_in_prompt': len(files)
+            })
+            
+            # Get response from ChatGPT
+            llm_response = self.chat_service.get_response(prompt)
+            print("==========llm_response==========")
+            print(llm_response)
+            print("==========llm_response==========")
+            
+            # Log LLM response
+            self.test_logger.log_llm_response(llm_response)
+
+            response = None
             try:
-                # First detect the operation
-                operation = await self._detect_operation(user_message)
-                if operation not in ['open', 'close']:
-                    return {
-                        'response': "Sorry, I couldn't understand if you want to open or close a file.",
-                        'files': all_files
-                    }
-                
-                # Then match the file
-                filename = await self._match_file(user_message, files)
-                if filename == "No matching files found.":
-                    return {
-                        'response': filename,
-                        'files': all_files
-                    }
-                
-                # Convert file name to full path
-                file_path = os.path.join(base_dir, filename)
-                
-                # Verify the file exists
-                if not os.path.exists(file_path):
-                    raise FileNotFoundError(f"File not found: {filename}")
-                
-                # Handle the operation
-                if operation == 'open':
-                    response = self._handle_open_file(file_path)
-                else:  # operation == 'close'
-                    response = self._handle_close_file(file_path)
-                
+                # Clean up the response
+                llm_response = llm_response.strip().strip('"').strip("'")
+                if llm_response != "No matching files found.":
+                    # Parse JSON response
+                    try:
+                        response_data = json.loads(llm_response)
+                        operation = response_data['operation']
+                        file_name = response_data['filename']
+                    except json.JSONDecodeError:
+                        # Fallback to old format parsing
+                        parts = llm_response.split(', filename: ')
+                        operation = parts[0].split('operation: ')[1].strip()
+                        file_name = parts[1].strip()
+                    
+                    # Convert file name to full path
+                    file_path = os.path.join(base_dir, file_name)
+                    
+                    # Verify the file exists
+                    if not os.path.exists(file_path):
+                        raise FileNotFoundError(f"File not found: {file_name}")
+                    
+                    # Get detailed file information
+                    file_info = self._format_file_info(file_path)
+                    
+                    if operation == 'close':
+                        self.file_service.close_specific_file(file_path)
+                        if file_info:
+                            response = f"Closing file:<br>" + \
+                                     f"Name: {file_info['name']}<br>" + \
+                                     f"Type: {file_info['type']}<br>" + \
+                                     f"Path: {file_info['path']}"
+                        else:
+                            response = f"Closing file: {file_path}"
+                    elif operation == 'open':
+                        self.file_service.open_file(file_path)
+                        if file_info:
+                            response = f"Opening file:<br>" + \
+                                     f"Name: {file_info['name']}<br>" + \
+                                     f"Type: {file_info['type']}<br>" + \
+                                     f"Size: {file_info['size']}<br>" + \
+                                     f"Modified: {file_info['modified']}<br>" + \
+                                     f"Path: {file_info['path']}"
+                        else:
+                            response = f"Opening file: {file_path}"
+                else:
+                    response = llm_response
             except Exception as e:
-                current_app.logger.warning(f"Failed to process file operation: {str(e)}")
-                response = f"Failed to process file operation: {str(e)}"
+                current_app.logger.warning(f"Failed to open file: {str(e)}")
+                response = f"Failed to open file: {str(e)}"
 
             # End test execution logging
             self.test_logger.end_execution()
 
             return {
                 'response': response,
-                'files': all_files
+                'files': all_files  # Return all files to frontend
             }
             
         except Exception as e:
+            # Handle errors appropriately
             current_app.logger.error(f"Error in CommandService: {str(e)}", exc_info=True)
+            # Make sure to end execution logging even on error
             if hasattr(self, 'test_logger'):
                 self.test_logger.end_execution()
             return {

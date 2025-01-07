@@ -1,14 +1,48 @@
 from typing import List, Dict, Optional
 import os
 from flask import current_app
-from models.prompts.file_assistant import FileAssistantPrompt
 
+class PromptTemplate:
+    """Prompt templates for file assistant"""
+    
+    FILE_MATCHING = """You are a file assistant helping users find, open, and close files.
+
+        Available files in {base_dir}:
+        {files}
+
+        File type categories:
+        - Documents: {document_types}
+        - Images: {image_types}
+        - Data files: {data_types}
+
+        Instructions:
+        1. Your task is to identify the user's intention (open/close) and find the matching file
+        2. Support any language (English, Chinese, etc.)
+        3. For file matching:
+           - When user says "document" -> match any document type
+           - When user says "image" -> match any image type
+           - When user says "data" -> match any data file type
+           - Otherwise match the most similar filename
+        4. Always return a JSON response in this format:
+           {{"operation": "open" or "close", "filename": "exact_filename_from_list"}}
+        5. If no files match, return exactly: "No matching files found."
+
+        Examples:
+        User: "hi, can you help me open the test1 document"
+        Response: {{"operation": "open", "filename": "test1.txt"}}
+
+        User: "关闭 that image"
+        Response: {{"operation": "close", "filename": "AutoFileOpeningFrame.png"}}
+
+        User: {query}
+        Response:
+        """
 class PromptService:
     def __init__(self):
         self.templates = {
-            'operation': FileAssistantPrompt.OPERATION_DETECTION,
-            'file_matching': FileAssistantPrompt.FILE_MATCHING
+            'file_matching': PromptTemplate.FILE_MATCHING
         }
+        self.current_template = 'file_matching'
     
     def format_file_list(self, files):
         """Format file list in a concise way"""
@@ -37,17 +71,16 @@ class PromptService:
             'data_types': ', '.join(file_types.get('DATA', [])),
             'archieve': ', '.join(file_types.get('ARCHIVES', []))
         }
-        
-    def get_operation_prompt(self, user_query):
-        """Get operation detection prompt"""
-        return self.templates['operation'].format(query=user_query)
-        
-    def get_file_matching_prompt(self, user_query, files):
-        """Get file matching prompt"""
+    
+    def combine_prompt(self, user_query, files):
+        """Combine user query and file list into a prompt"""
         base_dir, files_str = self.format_file_list(files)
         file_types = self.get_file_types()
+        print("==========file_types==========")
+        print(file_types)
+        print("==========file_types==========")
         
-        return self.templates['file_matching'].format(
+        return self.templates[self.current_template].format(
             query=user_query,
             base_dir=base_dir,
             files=files_str,

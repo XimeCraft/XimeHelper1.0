@@ -14,6 +14,9 @@ class OpenAIClient:
         self.model = current_app.config.get('AUTO_FILE_OPENAI_MODEL', 'gpt-3.5-turbo')
         self.temperature = current_app.config.get('AUTO_FILE_OPENAI_TEMPERATURE', 0.7)
         self.max_tokens = current_app.config.get('AUTO_FILE_MAX_PROMPT_TOKENS', 2000)
+        print("==========openai_client==========")
+        print(self.enabled)
+        print("==========openai_client==========")
 
         # Log API key status (first few characters only)
         if self.api_key:

@@ -16,16 +16,6 @@ class FileAssistantPrompt:
         3. Only return one of these exact words: "open" or "close"
         4. If the operation is unclear, return "unknown"
 
-        Examples:
-        User query: "hi, can you help me open the test1 document"
-        Response: "open"
-
-        User query: "关闭 that image"
-        Response: "close"
-
-        User query: "hi, can you help me process the test1 document"
-        Response: "unknown"
-
         User query: {query}
 
         Response:"""
@@ -49,13 +39,6 @@ class FileAssistantPrompt:
         - "data" -> match any Data Files type
         4. Return ONLY the exact filename from Available Files that best matches the user's query
         5. If no files match, return "No matching files found."
-
-        Examples:
-        User query: "open the test1 document"
-        Response: "test1.txt"
-
-        User query: "close that image"
-        Response: "AutoFileOpeningFrame.png"
 
         User query: {query}
 

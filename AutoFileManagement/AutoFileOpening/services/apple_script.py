@@ -127,15 +127,12 @@ class AppleScriptService:
     def _close_preview_window(cls, file_name):
         """Special handling for Preview.app"""
         script = f'''
-        tell application "Preview"
-            activate
-            delay 0.5
-            try
-                close (every window whose name contains "{file_name}")
+        tell application "System Events"
+            tell process "Preview"
+                set targetWindow to first window whose name contains "{file_name}"
+                click button 1 of targetWindow
                 return true
-            on error
-                return false
-            end try
+            end tell
         end tell
         '''
         result = cls.run_script(script)
@@ -144,18 +141,9 @@ class AppleScriptService:
             
         # If direct close fails, try force quit
         script = f'''
-        tell application "System Events"
-            tell application "Preview" to activate
-            delay 0.5
-            tell process "Preview"
-                set frontmost to true
-                click menu item "Close" of menu "File" of menu bar 1
-                delay 0.5
-                if exists sheet 1 of window 1 then
-                    click button "Don't Save" of sheet 1 of window 1
-                end if
-                return true
-            end tell
+        tell application "Preview"
+            close (every window whose name contains "{file_name}")
+            return true
         end tell
         '''
         return cls.run_script(script) == "true"
@@ -166,7 +154,7 @@ class AppleScriptService:
         script = '''
         tell application "Microsoft Excel"
             activate
-            delay 0.5
+            delay 0.2
             tell application "System Events"
                 keystroke "s" using {command down}
             end tell
@@ -182,7 +170,7 @@ class AppleScriptService:
         script = '''
         tell application "PDF Reader"
             activate
-            delay 0.5
+            delay 0.2
             tell application "System Events"
                 keystroke "s" using {command down}
             end tell
@@ -214,7 +202,7 @@ class AppleScriptService:
             tell application "System Events"
                 try
                     tell application "{app}" to activate
-                    delay 0.5
+                    delay 0.2
                     tell process "{app}"
                         set frontmost to true
                     end tell
@@ -225,7 +213,7 @@ class AppleScriptService:
             end tell
             '''
             cls.run_script(script)
-            time.sleep(1)  # 给用户时间响应权限请求
+            time.sleep(0.3)  # 给用户时间响应权限请求
         
         # 确保所有应用程序都退出
         cls.quit_applications()
