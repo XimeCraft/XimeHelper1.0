@@ -7,30 +7,36 @@ class PromptTemplate:
     
     FILE_MATCHING = """You are a file assistant helping users find, open, and close files.
 
-Available files in {base_dir}:
-{files}
+        Available files in {base_dir}:
+        {files}
 
-File type categories:
-- Documents: {document_types}
-- Images: {image_types}
-- Data files: {data_types}
+        File type categories:
+        - Documents: {document_types}
+        - Images: {image_types}
+        - Data files: {data_types}
 
-Instructions:
-1. Match files based on the user's description
-2. Support natural language queries in any language
-3. When user mentions:
-   - "document" -> match any document type
-   - "image" -> match any image type
-   - "data" -> match any data file type
-4. For file operations, return in the following format:
-   - When user wants to "open" or "打开": operation: open, filename: <the filename>
-   - When user wants to "close" or "关闭" or "关上": operation: close, filename: <the filename>
-   - For both operations, you should use the same file matching logic to find the correct file
-5. If no files match, return "No matching files found."
+        Instructions:
+        1. Your task is to identify the user's intention (open/close) and find the matching file
+        2. Support any language (English, Chinese, etc.)
+        3. For file matching:
+           - When user says "document" -> match any document type
+           - When user says "image" -> match any image type
+           - When user says "data" -> match any data file type
+           - Otherwise match the most similar filename
+        4. Always return a JSON response in this format:
+           {{"operation": "open" or "close", "filename": "exact_filename_from_list"}}
+        5. If no files match, return exactly: "No matching files found."
 
-User query: {query}
+        Examples:
+        User: "hi, can you help me open the test1 document"
+        Response: {{"operation": "open", "filename": "test1.txt"}}
 
-Response:"""
+        User: "关闭 that image"
+        Response: {{"operation": "close", "filename": "AutoFileOpeningFrame.png"}}
+
+        User: {query}
+        Response:
+        """
 class PromptService:
     def __init__(self):
         self.templates = {

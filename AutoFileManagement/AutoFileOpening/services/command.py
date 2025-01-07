@@ -5,6 +5,7 @@ from flask import current_app
 import os
 from datetime import datetime
 from interface.test_logger import TestLogger
+import json
 
 class CommandService:
     """Service for processing user commands"""
@@ -105,10 +106,16 @@ class CommandService:
                 # Clean up the response
                 llm_response = llm_response.strip().strip('"').strip("'")
                 if llm_response != "No matching files found.":
-                    # Parse operation and filename
-                    parts = llm_response.split(', filename: ')
-                    operation = parts[0].split('operation: ')[1].strip()
-                    file_name = parts[1].strip()
+                    # Parse JSON response
+                    try:
+                        response_data = json.loads(llm_response)
+                        operation = response_data['operation']
+                        file_name = response_data['filename']
+                    except json.JSONDecodeError:
+                        # Fallback to old format parsing
+                        parts = llm_response.split(', filename: ')
+                        operation = parts[0].split('operation: ')[1].strip()
+                        file_name = parts[1].strip()
                     
                     # Convert file name to full path
                     file_path = os.path.join(base_dir, file_name)

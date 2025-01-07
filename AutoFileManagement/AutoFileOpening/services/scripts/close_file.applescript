@@ -11,7 +11,7 @@ on run argv
                     -- Try to save
                     try
                         keystroke "s" using command down
-                        delay 0.5
+                        delay 0.2
                     end try
                     -- Close window
                     close theWindow

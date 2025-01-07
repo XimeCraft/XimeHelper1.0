@@ -53,7 +53,7 @@ class FileService:
             import platform
             if platform.system() == 'Darwin':       # macOS
                 os.system(f'open "{file_path}"')
-                time.sleep(0.5)  # Wait for application to start
+                time.sleep(0.2)  # Reduced from 0.5 to 0.2
             elif platform.system() == 'Windows':    # Windows
                 os.system(f'start "" "{file_path}"')
             else:                                   # Linux
