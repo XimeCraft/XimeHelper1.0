@@ -10,25 +10,16 @@ class OpenAIClient:
         load_dotenv(override=True)
         
         self.api_key = os.getenv('OPENAI_API_KEY')
-        self.enabled = current_app.config.get('AUTO_FILE_OPENAI_ENABLED', False)
+        if not self.api_key:
+            raise ValueError("OpenAI API key not found in environment variables")
+            
         self.model = current_app.config.get('AUTO_FILE_OPENAI_MODEL', 'gpt-3.5-turbo')
         self.temperature = current_app.config.get('AUTO_FILE_OPENAI_TEMPERATURE', 0.7)
         self.max_tokens = current_app.config.get('AUTO_FILE_MAX_PROMPT_TOKENS', 2000)
-        print("==========openai_client==========")
-        print(self.enabled)
-        print("==========openai_client==========")
-
-        # Log API key status (first few characters only)
-        if self.api_key:
-            current_app.logger.info(f'Loaded API key starting with: {self.api_key[:5]}...')
-        else:
-            current_app.logger.warning('No API key found in environment variables')
         
-        if self.enabled:
-            if not self.api_key:
-                current_app.logger.error('OpenAI API key not found in environment variables')
-                raise ValueError("OpenAI API key not found in environment variables")
-            self.client = OpenAI(api_key=self.api_key)
+        # Initialize OpenAI client
+        self.client = OpenAI(api_key=self.api_key)
+        current_app.logger.info(f'OpenAI client initialized with model: {self.model}')
     
     def _count_tokens(self, text):
         """Count the number of tokens in the text"""
@@ -61,33 +52,6 @@ class OpenAIClient:
                 )
                 return "Sorry, the prompt is too long. Please try with fewer files or a shorter message."
 
-            if not self.enabled:
-                # MOCK: Return test response that matches the expected format
-                if "开" in prompt or "open" in prompt.lower():
-                    operation = "open"
-                elif "关" in prompt or "close" in prompt.lower():
-                    operation = "close"
-                else:
-                    return "No matching files found."
-                
-                # Extract filename from available files list
-                file_list_start = prompt.find("Available files")
-                file_list_end = prompt.find("File type categories")
-                if file_list_start != -1 and file_list_end != -1:
-                    file_list = prompt[file_list_start:file_list_end]
-                    # Get the first file from the list
-                    import re
-                    files = re.findall(r"- (.*?) \(", file_list)
-                    if files:
-                        mock_response = f"operation: {operation}, filename: {files[0]}"
-                    else:
-                        mock_response = "No matching files found."
-                else:
-                    mock_response = "No matching files found."
-                
-                current_app.logger.info('Generated mock response (OpenAI API is disabled)')
-                return mock_response
-            
             # Real API call
             current_app.logger.info(f'Calling OpenAI API with model {model or self.model}')
             response = self.client.chat.completions.create(

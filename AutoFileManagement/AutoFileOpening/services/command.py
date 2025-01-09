@@ -82,10 +82,6 @@ class CommandService:
             # Combine everything into the prompt
             prompt = self.prompt_service.combine_prompt(user_message, files)
 
-            print("==========prompt==========")
-            print(prompt)
-            print("==========prompt==========")
-            
             # Log prompt information
             self.test_logger.log_prompt(prompt, {
                 'user_message': user_message,
@@ -94,6 +90,7 @@ class CommandService:
             
             # Get response from ChatGPT
             llm_response = self.chat_service.get_response(prompt)
+            # llm_response = """{"operation": "open", "filename": "test1.txt"}"""
             print("==========llm_response==========")
             print(llm_response)
             print("==========llm_response==========")
@@ -103,14 +100,18 @@ class CommandService:
 
             response = None
             try:
-                # Clean up the response
-                llm_response = llm_response.strip().strip('"').strip("'")
+
                 if llm_response != "No matching files found.":
                     # Parse JSON response
                     try:
-                        response_data = json.loads(llm_response)
+                        response_data = json.loads(llm_response.replace("'", '"'))
                         operation = response_data['operation']
                         file_name = response_data['filename']
+                        print("==========response_data==========")
+                        print(response_data)
+                        print(operation)
+                        print(file_name)
+                        print("==========response_data==========")
                     except json.JSONDecodeError:
                         # Fallback to old format parsing
                         parts = llm_response.split(', filename: ')
