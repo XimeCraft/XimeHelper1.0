@@ -104,11 +104,14 @@ class CommandService:
                 if llm_response != "No matching files found.":
                     # Parse JSON response
                     try:
-                        response_data = json.loads(llm_response.replace("'", '"'))
+                        response_data = json.loads(llm_response)
+                        print("==========response_data==========")
+                        print(response_data)
+                        print("==========response_data==========")
+                        # response_data = json.loads(llm_response.replace("'", '"'))
                         operation = response_data['operation']
                         file_name = response_data['filename']
                         print("==========response_data==========")
-                        print(response_data)
                         print(operation)
                         print(file_name)
                         print("==========response_data==========")

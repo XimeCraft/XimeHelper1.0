@@ -11,7 +11,10 @@ class ChatService:
             self.client = OpenAIClient()
         else:
             raise ValueError("No LLM service is enabled. Please enable either Ollama or OpenAI in config.")
-    
+        print("==========chat_service==========")
+        print(self.client)
+        print("==========chat_service==========")
+
     def get_response(self, prompt):
         """
         Get response from LLM service (either Ollama or OpenAI)

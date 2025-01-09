@@ -11,13 +11,10 @@ class OllamaClient:
         self.max_tokens = current_app.config['AUTO_FILE_OLLAMA_MAX_PROMPT_TOKENS']
         
         # Set timeout to 60 seconds
-        timeout = httpx.Timeout(60.0, connect=30.0)
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url,
-            timeout=timeout
-        )
+        self.timeout = httpx.Timeout(60.0, connect=30.0)
+        self.client = httpx.Client(base_url=self.base_url, timeout=self.timeout)
     
-    async def create_chat_completion(self, prompt, model=None):
+    def create_chat_completion(self, prompt, model=None):
         """
         Call Ollama API to get response
         
@@ -29,9 +26,8 @@ class OllamaClient:
             str: API response text
         """
         try:
-            # Real API call
             current_app.logger.info(f'Calling Ollama API with model {model or self.model}')
-            response = await self.client.post(
+            response = self.client.post(
                 '/api/generate',
                 json={
                     'model': model or self.model,
@@ -64,8 +60,8 @@ class OllamaClient:
         except Exception as e:
             current_app.logger.error(f"Unexpected error when calling Ollama: {str(e)}", exc_info=True)
             raise
-            
-    async def close(self):
-        """Close the HTTP client"""
+    
+    def __del__(self):
+        """Clean up resources when the object is destroyed"""
         if hasattr(self, 'client'):
-            await self.client.aclose() 
+            self.client.close() 
